@@ -104,6 +104,45 @@ def all_data_set():
     else:
         return "Erro ao conectar ao banco de dados."
 
+@app.route('/<marca>')
+def marca(marca):
+    conn = conectar() 
+    if conn:
+        query = f""" 
+            SELECT TOP 1000
+                V.UnitCost AS CustoUnitario,
+                V.UnitPrice AS PrecoUnitario,
+                V.SalesQuantity AS QuantidadeVendida,
+                V.ReturnQuantity AS QuantidadeDevolvida,
+                V.ReturnAmount AS ValorDevolvido,
+                V.DiscountQuantity AS QuantidadeDesconto,
+                V.DiscountAmount AS ValorDesconto,
+                P.ProductName AS NomeProduto,
+                P.ProductDescription AS DescricaoProduto,
+                P.Manufacturer AS Fabricante,
+                P.BrandName AS NomeMarca,
+                P.ClassName AS NomeClasse,
+                P.StyleName AS NomeEstilo,
+                P.ColorName AS NomeCor,
+                P.Size AS Tamanho,
+                P.SizeRange AS FaixaTamanho,
+                P.Weight AS Peso,
+                P.UnitOfMeasureName AS NomeUnidadeMedida,
+                P.StockTypeName AS NomeTipoEstoque,
+                P.AvailableForSaleDate AS DataDisponivelVendaProduto,
+                P.Status AS StatusProduto
+            FROM [dbo].[FactSales] V
+            INNER JOIN [dbo].[DimProduct] P ON V.ProductKey = P.ProductKey
+            Where P.BrandName  = '{marca}'
+        """
+        df = pd.read_sql(query, conn)
+        conn.close()  # Fechar a conexão
+
+        # Converter DataFrame para JSON e retornar
+        return jsonify(df.to_dict(orient="records"))
+    else:
+        return "Erro ao conectar ao banco de dados."
+
 
 
 if __name__ == "__main__":
